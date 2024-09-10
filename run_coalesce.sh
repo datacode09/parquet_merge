@@ -6,6 +6,15 @@ CONFIG_FILE="config.txt"
 # Path to the Python script
 PYTHON_SCRIPT="coalesce_parquet.py"  # Replace this with the correct path to your Python script
 
+# Create a unique log file for this run (with timestamp)
+LOG_FILE="coalesce_run_$(date +'%Y%m%d_%H%M%S').log"
+
+# Function to log messages
+log_message() {
+    local message=$1
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - $message" | tee -a "$LOG_FILE"
+}
+
 # Function to call the Python script for each Parquet file
 process_parquet_files() {
     local hdfs_dir=$1
@@ -15,27 +24,28 @@ process_parquet_files() {
 
     # Iterate over each Parquet file
     for parquet_file in $parquet_files; do
-        echo "Processing Parquet file: $parquet_file"
+        log_message "Processing Parquet file: $parquet_file"
 
         # Set the environment variable for the Python script
         export HDFS_PARQUET_PATH="$parquet_file"
 
-        # Call the Python script to process the Parquet file
-        python3 "$PYTHON_SCRIPT"
+        # Call the Python script to process the Parquet file and log the output
+        python3 "$PYTHON_SCRIPT" >> "$LOG_FILE" 2>&1
         
         if [ $? -eq 0 ]; then
-            echo "Successfully processed: $parquet_file"
+            log_message "Successfully processed: $parquet_file"
         else
-            echo "Failed to process: $parquet_file"
+            log_message "Failed to process: $parquet_file"
         fi
     done
 }
 
 # Read each HDFS path from the config file and process the Parquet files in it
 while IFS= read -r hdfs_path; do
-    echo "Processing HDFS directory: $hdfs_path"
+    log_message "Processing HDFS directory: $hdfs_path"
 
     process_parquet_files "$hdfs_path"
     
 done < "$CONFIG_FILE"
 
+log_message "Coalescing run complete. Log file: $LOG_FILE"
