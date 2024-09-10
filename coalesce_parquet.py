@@ -1,10 +1,11 @@
-from pyspark.sql import SparkSession
-import logging
 import os
+import logging
+from pyspark.sql import SparkSession
 from py4j.java_gateway import java_import
 
-# Setup logging configuration
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Setup logging configuration (append logs to the same log file)
+LOG_FILE = os.getenv("LOG_FILE", "coalesce_run.log")
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def create_spark_session(app_name):
     return SparkSession.builder.appName(app_name).enableHiveSupport().getOrCreate()
