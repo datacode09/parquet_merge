@@ -1,0 +1,3 @@
+hdfs://namenode:8020/path/to/dataset1
+hdfs://namenode:8020/path/to/dataset2
+hdfs://namenode:8020/path/to/dataset3
